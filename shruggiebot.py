@@ -11,6 +11,7 @@ from telegram import Updater
 import logging
 import time
 import random
+import thread
 from datetime import timedelta, datetime
 
 # Enable logging
@@ -22,6 +23,9 @@ logger = logging.getLogger(__name__)
 
 # Array for (chat ID, datetime of last doorslam)
 last_doorslam_time = []
+
+# Array for (chat ID, user ID, datetime of last high five)
+last_high_five_time = []
 
 # Array of doorslam gif URLs
 doorslam_gifs = [
@@ -51,6 +55,87 @@ doorslam_gifs = [
 "http://i.imgur.com/bsiBiPI.gif"
 ]
 
+# Array of normal high five gif URLs
+normal_high_five_gifs = [
+"https://i.imgur.com/UCZ4X8v.gif",
+"https://i.imgur.com/LeWppmm.gif",
+"https://i.imgur.com/I0LC7R7.gif",
+"https://i.imgur.com/cARCCNV.gif",
+"https://i.imgur.com/Ka9fndL.gif",
+"https://i.imgur.com/91xmP3h.gif",
+"https://i.imgur.com/RbQefRY.gif",
+"https://i.imgur.com/SUqtHOu.gif",
+"https://i.imgur.com/OBVGeK5.gif",
+"https://i.imgur.com/WQOyz1B.gif",
+"https://i.imgur.com/GR2zwdx.gif",
+"https://i.imgur.com/6cxZvXc.gif",
+"https://i.imgur.com/Oagx0v2.gif",
+"https://i.imgur.com/KJyn9vk.gif",
+"https://i.imgur.com/lNrFb0n.gif",
+"https://i.imgur.com/UgCcB4T.gif",
+"https://i.imgur.com/3g6VJBI.gif",
+"https://i.imgur.com/RJS1SeF.gif",
+"https://i.imgur.com/rf7N1Ly.gif",
+"https://i.imgur.com/ttHFqE4.gif",
+"https://i.imgur.com/FZYtCeU.gif",
+"https://i.imgur.com/7uBYgBo.gif",
+"https://i.imgur.com/MdDuvt5.gif",
+"https://i.imgur.com/qVCdKpX.gif",
+"https://i.imgur.com/umnRyMn.gif",
+"https://i.imgur.com/CatI03o.gif",
+"https://i.imgur.com/U0cvYCZ.gif",
+"https://i.imgur.com/6EMy1Nc.gif",
+"https://i.imgur.com/O6q4Wig.gif",
+"https://i.imgur.com/Xl66kpl.gif",
+"https://i.imgur.com/u7EIIVr.gif",
+"https://i.imgur.com/jc1JoqM.gif",
+"https://i.imgur.com/mpwsnrx.gif",
+"https://i.imgur.com/NtdhV7E.gif",
+"https://i.imgur.com/p4mSV6o.gif",
+"https://i.imgur.com/9kLu8fE.gif",
+"https://i.imgur.com/LJ73GB8.gif",
+"https://i.imgur.com/gexziuO.gif",
+"https://i.imgur.com/meqWOgW.gif",
+"https://i.imgur.com/K3PPVKp.gif",
+"https://i.imgur.com/PGGvVkv.gif",
+"https://i.imgur.com/4sHq5Nv.gif",
+"https://i.imgur.com/nStYugX.gif",
+"https://i.imgur.com/GI7LuCN.gif",
+"https://i.imgur.com/wqMSAUv.gif",
+"https://i.imgur.com/uJnlAtC.gif",
+"https://i.imgur.com/nTxBVbb.gif"
+]
+
+# Array of self high five gif URLs
+self_high_five_gifs = [
+"https://i.imgur.com/7RipXt1.gif",
+"https://i.imgur.com/NrbO409.gif",
+"https://i.imgur.com/4XHZA9m.gif",
+"https://i.imgur.com/oScaUrQ.gif",
+"https://i.imgur.com/EtgLwDc.gif"
+]
+
+# Array of denied high five gif URLs
+denied_high_five_gifs = [
+"https://i.imgur.com/4yGJHZP.gif",
+"https://i.imgur.com/0pRyGCr.gif",
+"https://i.imgur.com/vVXl2va.gif",
+"https://i.imgur.com/HoVND9X.gif",
+"https://i.imgur.com/yIU4s2o.gif",
+"https://i.imgur.com/yevDlYT.gif",
+"https://i.imgur.com/a1KUSZl.gif",
+"https://i.imgur.com/YbikylC.gif",
+"https://i.imgur.com/71wcWKP.gif",
+"https://i.imgur.com/RM5V8hs.gif",
+"https://i.imgur.com/s4qdMYk.gif",
+"https://i.imgur.com/NDmnUgU.gif",
+"https://i.imgur.com/5NWgfnk.gif",
+"https://i.imgur.com/JHWNzVz.gif",
+"https://i.imgur.com/ZswMzhh.gif",
+"https://i.imgur.com/rTQlODg.gif",
+"https://i.imgur.com/K5Bhex2.gif"
+]
+
 # Define command handlers here.
 def start(bot, update):
     bot.sendMessage(update.message.chat_id, text='ShruggieBot can shrug.\nUse /shruggie to shrug')
@@ -58,10 +143,10 @@ def start(bot, update):
 
 def halp(bot, update):
     halp_text = """
-ShruggieBot can shrug. BUT WAIT! THERE'S MORE!
+ShruggieBot can shrug and also other things
 
 /shruggie - shrug
-/sadshruggie - shrug
+/sadshruggie - sad shrug
 /lenny - Lenny face
 /diretide - GIVE DIRETIDE
 /helix - USE HELIX
@@ -70,6 +155,7 @@ ShruggieBot can shrug. BUT WAIT! THERE'S MORE!
 /unflip - unflip a table
 /disapprove - disapproving face
 /YEAH _[optional: setup text]_ ; _[optional: punchline text]_ - CSI Miami Simulator 2016
+/fives - high five with another user in this chat
 """
     bot.sendMessage(update.message.chat_id, text=halp_text, parse_mode='Markdown')
 
@@ -150,9 +236,9 @@ def doorslam(bot, update):
     
     if datetime.now() > (last_doorslam_time[chat_index][1] + timedelta(hours=1)):
         logger.info('Doorslam in chat %s' % (update.message.chat_id))
-        # Wait 10 seconds
+        # Wait 5 seconds
         # TODO Implement non-blocking way to wait
-        time.sleep(7)
+        time.sleep(5)
         
         # Get a random doorslam gif
         doorslam_gif = doorslam_gifs[random.randint(0,len(doorslam_gifs) - 1)]
@@ -169,8 +255,60 @@ def error(bot, update, error):
     logger.warn('Update "%s" caused error "%s"' % (update, error))
 
 
+def high_five(bot, update):
+    # If this is the first /five in the last minute, add it to the list and start a countdown thread (_high_five_timeout).
+    # If this is the second /five, post a normal high five gif if it wasn't the same person or a self high five if the user IDs ==.
+    # This doesn't really matter so we don't save it to file in case of restarts
+    chat_index = None
+    for index, item in enumerate(last_high_five_time):
+        if item[0] == update.message.chat_id:
+            chat_index = index
+            break
+            
+    # Add this chat if it wasn't found, this is the first high five
+    if chat_index is None:
+        logger.info('Initiate high five in chat %s' % (update.message.chat_id))
+        last_high_five_time.append((update.message.chat_id, update.message.from_user.id, datetime.now()))
+        
+        try:
+           thread.start_new_thread(_high_five_timeout, (bot, update.message.chat_id, update.message.message_id, ) )
+        except:
+            logger.info('Error: unable to start _high_five_timeout thread')
+        
+    else:
+        if datetime.now() < (last_high_five_time[chat_index][2] + timedelta(seconds=60)):
+            if last_high_five_time[chat_index][1] == update.message.from_user.id:
+                # Get a random self high five gif
+                logger.info('Self high five in chat %s' % (update.message.chat_id))
+                high_five_gif = self_high_five_gifs[random.randint(0,len(self_high_five_gifs) - 1)]
+            else:
+                # Get a random normal high five gif
+                logger.info('Normal high five in chat %s' % (update.message.chat_id))
+                high_five_gif = normal_high_five_gifs[random.randint(0,len(normal_high_five_gifs) - 1)]
+            
+            # Post the gif
+            bot.sendVideo(update.message.chat_id, text='/fives', video=high_five_gif)
+            
+        # Remove the previous high five entry
+        last_high_five_time.pop(chat_index)
+        
+
+def _high_five_timeout(bot, chat_id, message_id):
+    time.sleep(60)
+    
+    chat_index = None
+    for index, item in enumerate(last_high_five_time):
+        if item[0] == chat_id:
+            logger.info('Denied high five in chat %s' % (chat_id))
+            
+            last_high_five_time.pop(index)
+            high_five_gif = denied_high_five_gifs[random.randint(0,len(denied_high_five_gifs) - 1)]
+            bot.sendVideo(chat_id, text='/fives', video=high_five_gif, reply_to_message_id=message_id)
+            break
+
+
 #
-# Returns a list of 0, 1, or 2 length with the 
+# Returns a list of 0, 1, or 2 length args split apart by ";"
 #
 def _clean_yeah_message(message):
     cleaned_words_string = message.strip()
@@ -211,12 +349,14 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # on different commands - answer in Telegram
+    # On different commands, answer in Telegram
     dp.addTelegramCommandHandler("start", start)
-    dp.addTelegramCommandHandler("help", start)
+    dp.addTelegramCommandHandler("help", halp)
     dp.addTelegramCommandHandler("halp", halp)
     dp.addTelegramCommandHandler("shrug", shruggie)
+    dp.addTelegramCommandHandler("shug", shruggie) # Typos = hard
     dp.addTelegramCommandHandler("shruggie", shruggie)
+    dp.addTelegramCommandHandler("shuggie", shruggie)
     dp.addTelegramCommandHandler("sadshrug", sad_shruggie)
     dp.addTelegramCommandHandler("sadshruggie", sad_shruggie)
     dp.addTelegramCommandHandler("lenny", lenny)
@@ -229,6 +369,12 @@ def main():
     dp.addTelegramCommandHandler("yeah", yeah)
     dp.addTelegramCommandHandler("YEAH", yeah)
     dp.addTelegramCommandHandler("DOORSLAM", doorslam)
+    dp.addTelegramCommandHandler("five", high_five)
+    dp.addTelegramCommandHandler("fives", high_five)
+    dp.addTelegramCommandHandler("efive", high_five)
+    dp.addTelegramCommandHandler("efives", high_five)
+    dp.addTelegramCommandHandler("highfive", high_five)
+    dp.addTelegramCommandHandler("highfives", high_five)
 
     # Log all errors
     dp.addErrorHandler(error)

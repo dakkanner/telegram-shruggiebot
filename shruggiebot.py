@@ -7,7 +7,7 @@ This bot replies to various /commands in Telegram with emoticon text messages or
 gif video messages.
 """
 
-from telegram import Updater
+from telegram.ext import Updater, CommandHandler
 import logging
 import time
 import random
@@ -345,40 +345,42 @@ def _clean_yeah_message(message):
 def main():
     # Create the EventHandler and pass it the bot's token.
     updater = Updater("BOT TOKEN GOES HERE")
+    
+    logger.info('Starting shruggiebot')
 
     # Get the dispatcher to register handlers
-    dp = updater.dispatcher
+    dispatch = updater.dispatcher
 
     # On different commands, answer in Telegram
-    dp.addTelegramCommandHandler("start", start)
-    dp.addTelegramCommandHandler("help", halp)
-    dp.addTelegramCommandHandler("halp", halp)
-    dp.addTelegramCommandHandler("shrug", shruggie)
-    dp.addTelegramCommandHandler("shug", shruggie) # Typos = hard
-    dp.addTelegramCommandHandler("shruggie", shruggie)
-    dp.addTelegramCommandHandler("shuggie", shruggie)
-    dp.addTelegramCommandHandler("sadshrug", sad_shruggie)
-    dp.addTelegramCommandHandler("sadshruggie", sad_shruggie)
-    dp.addTelegramCommandHandler("lenny", lenny)
-    dp.addTelegramCommandHandler("diretide", diretide)
-    dp.addTelegramCommandHandler("helix", helix)
-    dp.addTelegramCommandHandler("ayy", ayy)
-    dp.addTelegramCommandHandler("flip", flip)
-    dp.addTelegramCommandHandler("unflip", unflip)
-    dp.addTelegramCommandHandler("disapprove", disapprove)
-    dp.addTelegramCommandHandler("yeah", yeah)
-    dp.addTelegramCommandHandler("YEAH", yeah)
-    dp.addTelegramCommandHandler("DOORSLAM", doorslam)
-    dp.addTelegramCommandHandler("five", high_five)
-    dp.addTelegramCommandHandler("fives", high_five)
-    dp.addTelegramCommandHandler("efive", high_five)
-    dp.addTelegramCommandHandler("efives", high_five)
-    dp.addTelegramCommandHandler("highfive", high_five)
-    dp.addTelegramCommandHandler("highfives", high_five)
+    dispatch.addHandler(CommandHandler("start", start))
+    dispatch.addHandler(CommandHandler("help", halp))
+    dispatch.addHandler(CommandHandler("halp", halp))
+    dispatch.addHandler(CommandHandler("shrug", shruggie))
+    dispatch.addHandler(CommandHandler("shug", shruggie)) # Typos = hard
+    dispatch.addHandler(CommandHandler("shruggie", shruggie))
+    dispatch.addHandler(CommandHandler("shuggie", shruggie))
+    dispatch.addHandler(CommandHandler("sadshrug", sad_shruggie))
+    dispatch.addHandler(CommandHandler("sadshruggie", sad_shruggie))
+    dispatch.addHandler(CommandHandler("lenny", lenny))
+    dispatch.addHandler(CommandHandler("diretide", diretide))
+    dispatch.addHandler(CommandHandler("helix", helix))
+    dispatch.addHandler(CommandHandler("ayy", ayy))
+    dispatch.addHandler(CommandHandler("flip", flip))
+    dispatch.addHandler(CommandHandler("unflip", unflip))
+    dispatch.addHandler(CommandHandler("disapprove", disapprove))
+    dispatch.addHandler(CommandHandler("yeah", yeah))
+    dispatch.addHandler(CommandHandler("YEAH", yeah))
+    dispatch.addHandler(CommandHandler("DOORSLAM", doorslam))
+    dispatch.addHandler(CommandHandler("five", high_five))
+    dispatch.addHandler(CommandHandler("fives", high_five))
+    dispatch.addHandler(CommandHandler("efive", high_five))
+    dispatch.addHandler(CommandHandler("efives", high_five))
+    dispatch.addHandler(CommandHandler("highfive", high_five))
+    dispatch.addHandler(CommandHandler("highfives", high_five))
 
     # Log all errors
-    dp.addErrorHandler(error)
-
+    dispatch.addErrorHandler(error)
+    
     # Start the bot
     updater.start_polling()
 
@@ -386,6 +388,8 @@ def main():
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
+    
+    logger.info('Stopping shruggiebot')
 
 if __name__ == '__main__':
     main()

@@ -7,6 +7,7 @@ This bot replies to various /commands in Telegram with emoticon text messages or
 gif video messages.
 """
 
+from telegram import ChatAction
 from telegram.ext import Updater, CommandHandler
 import logging
 import time
@@ -287,6 +288,7 @@ def high_five(bot, update):
                 high_five_gif = normal_high_five_gifs[random.randint(0,len(normal_high_five_gifs) - 1)]
             
             # Post the gif
+            bot.sendChatAction(update.message.chat_id, ChatAction.UPLOAD_VIDEO)
             bot.sendVideo(update.message.chat_id, text='/fives', video=high_five_gif)
             
         # Remove the previous high five entry
@@ -303,6 +305,7 @@ def _high_five_timeout(bot, chat_id, message_id):
             
             last_high_five_time.pop(index)
             high_five_gif = denied_high_five_gifs[random.randint(0,len(denied_high_five_gifs) - 1)]
+            bot.sendChatAction(update.message.chat_id, ChatAction.UPLOAD_VIDEO)
             bot.sendVideo(chat_id, text='/fives', video=high_five_gif, reply_to_message_id=message_id)
             break
 
@@ -352,34 +355,34 @@ def main():
     dispatch = updater.dispatcher
 
     # On different commands, answer in Telegram
-    dispatch.addHandler(CommandHandler("start", start))
-    dispatch.addHandler(CommandHandler("help", halp))
-    dispatch.addHandler(CommandHandler("halp", halp))
-    dispatch.addHandler(CommandHandler("shrug", shruggie))
-    dispatch.addHandler(CommandHandler("shug", shruggie)) # Typos = hard
-    dispatch.addHandler(CommandHandler("shruggie", shruggie))
-    dispatch.addHandler(CommandHandler("shuggie", shruggie))
-    dispatch.addHandler(CommandHandler("sadshrug", sad_shruggie))
-    dispatch.addHandler(CommandHandler("sadshruggie", sad_shruggie))
-    dispatch.addHandler(CommandHandler("lenny", lenny))
-    dispatch.addHandler(CommandHandler("diretide", diretide))
-    dispatch.addHandler(CommandHandler("helix", helix))
-    dispatch.addHandler(CommandHandler("ayy", ayy))
-    dispatch.addHandler(CommandHandler("flip", flip))
-    dispatch.addHandler(CommandHandler("unflip", unflip))
-    dispatch.addHandler(CommandHandler("disapprove", disapprove))
-    dispatch.addHandler(CommandHandler("yeah", yeah))
-    dispatch.addHandler(CommandHandler("YEAH", yeah))
-    dispatch.addHandler(CommandHandler("DOORSLAM", doorslam))
-    dispatch.addHandler(CommandHandler("five", high_five))
-    dispatch.addHandler(CommandHandler("fives", high_five))
-    dispatch.addHandler(CommandHandler("efive", high_five))
-    dispatch.addHandler(CommandHandler("efives", high_five))
-    dispatch.addHandler(CommandHandler("highfive", high_five))
-    dispatch.addHandler(CommandHandler("highfives", high_five))
+    dispatch.add_handler(CommandHandler("start", start))
+    dispatch.add_handler(CommandHandler("help", halp))
+    dispatch.add_handler(CommandHandler("halp", halp))
+    dispatch.add_handler(CommandHandler("shrug", shruggie))
+    dispatch.add_handler(CommandHandler("shug", shruggie)) # Typos = hard
+    dispatch.add_handler(CommandHandler("shruggie", shruggie))
+    dispatch.add_handler(CommandHandler("shuggie", shruggie))
+    dispatch.add_handler(CommandHandler("sadshrug", sad_shruggie))
+    dispatch.add_handler(CommandHandler("sadshruggie", sad_shruggie))
+    dispatch.add_handler(CommandHandler("lenny", lenny))
+    dispatch.add_handler(CommandHandler("diretide", diretide))
+    dispatch.add_handler(CommandHandler("helix", helix))
+    dispatch.add_handler(CommandHandler("ayy", ayy))
+    dispatch.add_handler(CommandHandler("flip", flip))
+    dispatch.add_handler(CommandHandler("unflip", unflip))
+    dispatch.add_handler(CommandHandler("disapprove", disapprove))
+    dispatch.add_handler(CommandHandler("yeah", yeah))
+    dispatch.add_handler(CommandHandler("YEAH", yeah))
+    dispatch.add_handler(CommandHandler("DOORSLAM", doorslam))
+    dispatch.add_handler(CommandHandler("five", high_five))
+    dispatch.add_handler(CommandHandler("fives", high_five))
+    dispatch.add_handler(CommandHandler("efive", high_five))
+    dispatch.add_handler(CommandHandler("efives", high_five))
+    dispatch.add_handler(CommandHandler("highfive", high_five))
+    dispatch.add_handler(CommandHandler("highfives", high_five))
 
     # Log all errors
-    dispatch.addErrorHandler(error)
+    dispatch.add_error_handler(error)
     
     # Start the bot
     updater.start_polling()
